@@ -29,6 +29,16 @@ program fray
   real :: u, v
   type(Ray) :: r
 
+  
+  type(Sphere) :: spheres(2)
+  type(HittableList) :: my_world
+  !type(Sphere) :: sphere
+  
+  spheres(1) = Sphere([0., 0., -1.], 0.4)
+  spheres(2) = Sphere([0., -100.5, -1.], 100.)
+!  spheres(2)  = spheres(1)
+  my_world = HittableList(spheres)
+  
 
   write (stdout, '(a)') "P3"
   write (stdout, '(2(i3, 1x))') image_width, image_height
@@ -40,48 +50,29 @@ program fray
       u = i / iw
       v = j / ih
       r = Ray(origin, lower_left_corner + u * horizontal + v * vertical - origin)
-     write (stdout, '(3(i3, 1x))') color_out(ray_color(r))
+     write (stdout, '(3(i3, 1x))') color_out(ray_color(r, my_world))
     end do
   end do
 
 
 contains
-  pure function ray_color(r) result(res)
-    class(Ray), INTENT(IN)::r
-    real :: unit_direction(3), res(3), N(3), t
-    t = hit_sphere(point(0.0, 0.0, -1.0), 0.5, r)
-
-    if (t > 0.0) then 
-      N = unit_vector(r%at(t) - vector(0.0, 0.0, -1.0))
-      res = 0.5 * (N + 1.0) ! 0.5 * (N+1)
+  function ray_color(r, world) result(res)
+    class(Ray), INTENT(IN) :: r
+    class(Hittable), INTENT(IN) :: world
+    type(HitRecord) :: rec
+    real :: unit_direction(3), res(3), t
+ 
+ 
+    if (world%hit(r, 0.00, huge(1.), rec)) then
+      res = 0.5 * (rec%normal + 1)
       RETURN
-    end if
+     end if
+
 
     unit_direction = unit_vector(r%direction)
-
     t = 0.5*(unit_direction(Y) + 1.0)
     res = (1.0-t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0)
   end function ray_color
-
-
-  pure real function hit_sphere(center, radius, r)
-    real, INTENT(IN) :: center(3), radius
-    class(Ray), INTENT(IN) :: r
-    real :: oc(3), a, b, c, discriminant
-    
-    oc = r%origin - center
-    a = r%direction .dot. r%direction
-    b = 2.0 * (oc .dot. r%direction)
-    c  = oc .dot. oc - radius * radius
-    discriminant = b*b - 4*a*c
-
-    if (discriminant < 0) then
-      hit_sphere = -1.0
-    else
-      hit_sphere = (-b -sqrt(discriminant)) / (2.0*a)
-    end if
-
-  end function hit_sphere
 
 
 end program fray

@@ -18,6 +18,13 @@ module mod_vectors
       module procedure :: cross_vectors
     end interface 
 
+    interface vector
+      module procedure :: vector_0, vector_3
+    end interface vector
+    interface point
+      module procedure :: vector_0, vector_3
+    end interface point
+
   contains
 
   pure function color_out(v)  result(int_v)
@@ -60,12 +67,19 @@ module mod_vectors
     cross(3) = u(1) * v(2) - u(2) * v(1)
   end function cross_vectors
 
-  pure function vector(x, y, z)
+  pure function vector_0()
+    real :: vector_0(3)
+
+    vector_0 = [0.0, 0.0, 0.0]
+  end function vector_0
+
+
+  pure function vector_3(x, y, z)
     real, INTENT(IN) :: x, y, z
-    real :: vector(3) 
+    real :: vector_3(3) 
     
-    vector = [x, y, z]
-  end function vector
+    vector_3 = [x, y, z]
+  end function vector_3
 
   pure function color(r, g, b)
     real, INTENT(IN) :: r, g, b
@@ -73,13 +87,4 @@ module mod_vectors
     
     color = [r, g, b]
   end function color
-
-
-  pure function point(x, y, z)
-    real, INTENT(IN) :: x, y, z
-    real :: point(3) 
-    
-    point = [x, y, z]
-  end function point
-
 end module mod_vectors
