@@ -9,7 +9,7 @@ program fray
 
   ! Image parameters
   real, PARAMETER :: aspect_ratio = 16.0 / 9.0;
-  integer, PARAMETER :: image_width   = 800, &
+  integer, PARAMETER :: image_width   = 400, &
                         image_height  = int(image_width / aspect_ratio)
   real, PARAMETER :: iw = image_width - 1, ih = image_height - 1
 
