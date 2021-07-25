@@ -1,5 +1,7 @@
 module mod_vectors
+  use mod_utils
   implicit none
+
 
     public :: operator(.dot.)
     public :: operator(.cross.)
@@ -27,11 +29,16 @@ module mod_vectors
 
   contains
 
-  pure function color_out(v)  result(int_v)
-    real, intent(in) :: v(:)
-    INTEGER :: int_v(size(v))
+  pure function color_out(pixel_color, samples_per_pixel)  result(int_v)
+    real, intent(in) :: pixel_color(3)
+    INTEGER, intent(in) :: samples_per_pixel
+    INTEGER :: int_v(size(pixel_color))
+    ! real :: scale, col(3)
     
-    int_v = int(v * 255.999)
+    ! scale = 1.0 / samples_per_pixel
+    ! col = pixel_color * scale
+
+    int_v = int(256. * clamp(pixel_color * (1. / samples_per_pixel ), 0., 0.999))
   end function color_out
 
   pure function unit_vector(v)

@@ -1,16 +1,8 @@
-module mod_types
+module mod_shapes
   use mod_vectors
-  use iso_fortran_env, only: stdout => output_unit, stderr => error_unit
+  use mod_ray
 
   implicit none
-
-
-  type :: Ray
-    real, DIMENSION(3) :: origin, direction
-  contains
-    procedure, pass(self) :: at => get_point_at
-  end type Ray
-
   type Hittable 
   contains
     procedure, public, pass(self) :: hit => hit_hittable
@@ -37,14 +29,6 @@ module mod_types
   end type HittableList
 
 contains
-  pure function get_point_at(self, t) result(at)
-    class(Ray), INTENT(IN) :: self
-    real, INTENT(IN) :: t
-    real :: at(3)
-
-    at = self%origin + self%direction * t
-  end function get_point_at
-
   subroutine set_face_normal(self, r, outward_normal)
     class(HitRecord), INTENT(INOUT) :: self
     class(Ray), INTENT(IN) :: r
@@ -133,4 +117,4 @@ contains
     hit_sphere = .true.
   end function 
   
-end module mod_types
+end module mod_shapes

@@ -1,6 +1,5 @@
 module mod_camera
-  use mod_vectors
-  use mod_types
+  use mod_ray
   implicit none
 
   real, parameter :: default_aspect_ratio = 16./9., &
@@ -18,7 +17,18 @@ module mod_camera
   contains
     procedure, public, pass(self) :: get_ray
   end type Camera
+
+  interface Camera
+    module procedure :: camera_constructor
+  end interface Camera
 contains
+
+  pure type(Camera) function camera_constructor() result(res)
+    res%horizontal = [res%viewport_width, 0., 0.]
+    res%vertical = [0., res%viewport_height, 0.]
+    res%lower_left_corner = res%origin - res%horizontal / 2 - res%vertical / 2 - [0., 0., res%focal_length]
+  end function camera_constructor
+
   pure function get_ray(self, u, v) result(r)
     class(Camera), INTENT(IN) :: self
     real, INTENT(IN) :: u, v
