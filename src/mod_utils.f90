@@ -6,6 +6,15 @@ contains
     call random_number(random_uniform) 
   end function random_uniform
 
+  function random_distribution(length, min, max) result(res)
+    integer, INTENT(IN) :: length
+    real :: res(length)
+    real, INTENT(IN) :: min, max
+
+    call random_number(res)
+    res = (max-min)*res + min
+  end function random_distribution
+
   real function uniform_distribution(min, max)
     real, INTENT(IN) :: min, max
     real :: u

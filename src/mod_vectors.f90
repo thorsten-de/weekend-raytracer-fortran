@@ -38,7 +38,7 @@ module mod_vectors
     ! scale = 1.0 / samples_per_pixel
     ! col = pixel_color * scale
 
-    int_v = int(256. * clamp(pixel_color * (1. / samples_per_pixel ), 0., 0.999))
+    int_v = int(256. * clamp(sqrt(pixel_color *(1. / samples_per_pixel )), 0., 0.999))
   end function color_out
 
   pure function unit_vector(v)
@@ -87,6 +87,33 @@ module mod_vectors
     
     vector_3 = [x, y, z]
   end function vector_3
+
+  function random_in_unit_sphere() result(res)
+    real :: res(3)
+    
+    do 
+      res = random_distribution(3, -1., 1.)
+      if (length_squared(res) < 1) return
+    end do
+  end function random_in_unit_sphere
+
+  function random_unit_vector() result(res) 
+    real :: res(3)
+
+    res = unit_vector(random_in_unit_sphere())
+  end function random_unit_vector
+
+  function random_in_hemisphere(normal) result(res)
+    real, INTENT(IN) :: normal(3)
+    real :: res(3)
+
+    res = random_in_unit_sphere()
+    if ((res .dot. normal) <= 0) then
+      res = -res
+    end if
+  end function random_in_hemisphere
+
+
 
   pure function color(r, g, b)
     real, INTENT(IN) :: r, g, b

@@ -13,7 +13,8 @@ program fray
   real, PARAMETER :: aspect_ratio = 16.0 / 9.0;
   integer, PARAMETER :: image_width   = 400, &
                         image_height  = int(image_width / aspect_ratio), &
-                        samples_per_pixel = 100
+                        samples_per_pixel = 100, &
+                        max_depth = 50
 
   real, PARAMETER :: iw = image_width - 1, ih = image_height - 1
 
@@ -29,7 +30,7 @@ program fray
   !type(Sphere) :: sphere
   
 
-  spheres(1) = Sphere([0., 0., -1.], 0.4)
+  spheres(1) = Sphere([0., 0., -1.], 0.5)
   spheres(2) = Sphere([0., -100.5, -1.], 100.)
 !  spheres(2)  = spheres(1)
   my_world = HittableList(spheres)
@@ -48,7 +49,7 @@ program fray
         u = (i + random_uniform()) / iw
         v = (j + random_uniform()) / ih
         r = cam%get_ray(u, v)
-        pixel_color = pixel_color + ray_color(r, my_world)
+        pixel_color = pixel_color + ray_color(r, my_world, max_depth)
       end do
      write (stdout, '(3(i3, 1x))') color_out(pixel_color, samples_per_pixel)
     end do
@@ -56,17 +57,25 @@ program fray
 
 
 contains
-  function ray_color(r, world) result(res)
+  recursive function ray_color(r, world, depth) result(res)
     class(Ray), INTENT(IN) :: r
     class(Hittable), INTENT(IN) :: world
     type(HitRecord) :: rec
-    real :: unit_direction(3), res(3), t
+    integer, INTENT(IN) :: depth
+    real :: unit_direction(3), res(3), target_point(3), t
  
+    if (depth <= 0) then
+      res = color(0., 0., 0.)
+      return
+    end if
+
  
-    if (world%hit(r, 0.00, huge(1.), rec)) then
-      res = 0.5 * (rec%normal + 1)
+    if (world%hit(r, 0.001, huge(1.), rec)) then
+      target_point = rec%p + rec%normal + random_unit_vector()
+      res = 0.5 *  ray_color(Ray(rec%p, target_point - rec%p), world, depth - 1)
       RETURN
      end if
+
 
 
     unit_direction = unit_vector(r%direction)
