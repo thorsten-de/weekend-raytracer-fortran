@@ -8,16 +8,11 @@ module mod_shapes
     procedure, public, pass(self) :: hit => hit_hittable
   end type Hittable
 
-  type :: HitRecord
-    real ::t, p(3) = [0, 0, 0], normal(3) = [0,0,0]
-    logical :: front_face = .true.
-  contains
-    procedure, pass(self) :: set_face_normal
-  end type HitRecord
 
   type, extends(Hittable) :: Sphere
     real :: center(3) = [0.0, 0.0, 0.0]
     real :: radius = 1.0
+    class(Material), ALLOCATABLE :: material
   contains
     procedure, public, pass(self) :: hit => hit_sphere
   end type Sphere
@@ -29,18 +24,6 @@ module mod_shapes
   end type HittableList
 
 contains
-  subroutine set_face_normal(self, r, outward_normal)
-    class(HitRecord), INTENT(INOUT) :: self
-    class(Ray), INTENT(IN) :: r
-    real, INTENT(IN) :: outward_normal(3)
-
-    self%front_face = (r%direction .dot. outward_normal) < 0
-    if (self%front_face) then
-      self%normal = outward_normal
-    else 
-      self%normal = -outward_normal
-    end if
-  end subroutine set_face_normal
 
   logical function hit_hittable(self, r, t_min, t_max, rec)
     class(Ray), INTENT(IN) :: r
@@ -114,6 +97,7 @@ contains
     rec = HitRecord(t=root, p=r%at(root))
     outward_normal = (rec%p - self%center) / self%radius 
     call rec % set_face_normal(r, outward_normal)
+    rec%material = self%material
     hit_sphere = .true.
   end function 
   

@@ -26,6 +26,7 @@ module mod_vectors
     interface point
       module procedure :: vector_0, vector_3
     end interface point
+    
 
   contains
 
@@ -112,6 +113,31 @@ module mod_vectors
       res = -res
     end if
   end function random_in_hemisphere
+
+  pure function near_zero(v) result(res)
+    real, INTENT(IN) :: v(3)
+    real, PARAMETER :: s = 1e-8
+    logical :: res
+
+    res = all(v < s)
+  end function near_zero
+
+  pure function reflect(v, n)
+    real, INTENT(IN) :: v(3), n(3)
+    real :: reflect(3)
+
+    reflect = v - 2*(n .dot. v) * n
+  end function reflect
+
+  pure function refract(uv, n, etai_over_etat)
+    real, INTENT(IN) :: uv(3), n(3), etai_over_etat
+    real :: cos_theta, r_out_perp(3), r_out_parallel(3), refract(3)
+
+    cos_theta = min(-uv .dot. n, 1.0)
+    r_out_perp = etai_over_etat * (uv + cos_theta * n)
+    r_out_parallel = -sqrt(abs(1.0 - length_squared(r_out_perp))) * n
+    refract = r_out_perp + r_out_parallel
+  end function refract
 
 
 

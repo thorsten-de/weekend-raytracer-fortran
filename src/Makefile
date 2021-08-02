@@ -1,7 +1,7 @@
-FC = gfortran
+FC = caf
 FCFLAGS = -O3
 
-OBJS = mod_utils.o mod_vectors.o mod_ray.o mod_shapes.o mod_camera.o
+OBJS = mod_utils.o mod_vectors.o mod_ray.o mod_material.o mod_shapes.o mod_camera.o
 
 .PHONY: all clean
 .SUFFIXES: .f90 .o

@@ -5,6 +5,7 @@ program fray
   use mod_ray
   use mod_shapes
   use mod_camera
+  use mod_material
 
 
   implicit none
@@ -19,19 +20,30 @@ program fray
   real, PARAMETER :: iw = image_width - 1, ih = image_height - 1
 
   type(Camera) :: cam 
-  type(Ray) :: r
+  type(Ray) :: r, scattered
 
   integer :: i, j, s
   real :: u, v
-  real :: pixel_color(3)
+  real :: pixel_color(3), attenuation(3) ! colors
   
-  type(Sphere) :: spheres(2)
-  type(HittableList) :: my_world
-  !type(Sphere) :: sphere
+  class(Hittable), ALLOCATABLE :: my_world
+  type(Sphere) :: spheres(4)
+  class(Material), ALLOCATABLE :: mat_ground, mat_center, mat_left, mat_right
   
+  mat_ground = Lambertian(color(0.8, 0.8, 0.0))
+  ! mat_center = Dielectric(1.5)
+  mat_left = Dielectric(1.5)
+  mat_center = Lambertian(color(0.1, 0.2, 0.5))
+  !" mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
+  mat_right = Metal(color(0.8, 0.6, 0.2), 1.0)
 
-  spheres(1) = Sphere([0., 0., -1.], 0.5)
-  spheres(2) = Sphere([0., -100.5, -1.], 100.)
+
+
+  spheres(1) = Sphere([ 0.0, -100.5, -1.], 100., mat_ground)
+  spheres(2) = Sphere([ 0.0, 0.0, -1.0], 0.5, mat_center)
+  spheres(3) = Sphere([-1.0, 0.0, -1.0], 0.5, mat_left)
+  spheres(4) = Sphere([ 1.0, 0.0, -1.0], 0.5, mat_right)
+
 !  spheres(2)  = spheres(1)
   my_world = HittableList(spheres)
   
@@ -41,7 +53,7 @@ program fray
   write (stdout, '(2(i3, 1x))') image_width, image_height
   write (stdout , '(i3)') 255
   
-  do j= image_height - 1, 0, - 1
+  do j = image_height - 1, 0, - 1
     write(stderr, *) 'Scanlines remaining: ', j
     do i=0, image_width - 1
       pixel_color = [0., 0., 0.]
@@ -62,7 +74,7 @@ contains
     class(Hittable), INTENT(IN) :: world
     type(HitRecord) :: rec
     integer, INTENT(IN) :: depth
-    real :: unit_direction(3), res(3), target_point(3), t
+    real :: unit_direction(3), res(3), t
  
     if (depth <= 0) then
       res = color(0., 0., 0.)
@@ -71,12 +83,14 @@ contains
 
  
     if (world%hit(r, 0.001, huge(1.), rec)) then
-      target_point = rec%p + rec%normal + random_unit_vector()
-      res = 0.5 *  ray_color(Ray(rec%p, target_point - rec%p), world, depth - 1)
+      attenuation = 0
+      if (rec%material%scatter(r, rec, attenuation, scattered)) then
+        res = attenuation * ray_color(scattered, world, depth - 1)
+        RETURN
+      end if
+      res = [0., 0., 0.]
       RETURN
-     end if
-
-
+    end if
 
     unit_direction = unit_vector(r%direction)
     t = 0.5*(unit_direction(Y) + 1.0)
