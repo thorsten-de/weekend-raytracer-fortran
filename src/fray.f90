@@ -29,6 +29,7 @@ program fray
   class(Hittable), ALLOCATABLE :: my_world
   type(Sphere) :: spheres(4)
   class(Material), ALLOCATABLE :: mat_ground, mat_center, mat_left, mat_right
+  integer :: indices(2), is, ie
   
   mat_ground = Lambertian(color(0.8, 0.8, 0.0))
   ! mat_center = Dielectric(1.5)
@@ -49,13 +50,20 @@ program fray
   
   cam = Camera()
 
-  write (stdout, '(a)') "P3"
-  write (stdout, '(2(i3, 1x))') image_width, image_height
-  write (stdout , '(i3)') 255
+  indices = tile_image(image_width);
+  is = indices(1)
+  ie = indices(2)
+
+
+  if (this_image() == 1) then
+    write (stdout, '(a)') "P3"
+    write (stdout, '(2(i4, 1x))') image_width, image_height
+    write (stdout , '(i3)') 255
+  end if
   
   do j = image_height - 1, 0, - 1
-    write(stderr, *) 'Scanlines remaining: ', j
-    do i=0, image_width - 1
+    write(stderr, *) this_image(), 'of', num_images(), is, ':', ie,   '  ... Scanlines remaining: ', j
+    do i=is, ie
       pixel_color = [0., 0., 0.]
       do s=1, samples_per_pixel 
         u = (i + random_uniform()) / iw
@@ -97,6 +105,16 @@ contains
     t = 0.5*(unit_direction(Y) + 1.0)
     res = (1.0-t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0)
   end function ray_color
+
+  function tile_image(width)
+    integer, INTENT(IN) :: width  
+    integer :: tile_image(2), tile_width
+
+    tile_width = width / num_images()
+    tile_image(2) = this_image() * tile_width - 1
+    tile_image(1) = tile_image(2) - tile_width + 1
+  end function tile_image
+
 
 
 end program fray
