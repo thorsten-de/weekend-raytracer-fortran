@@ -20,11 +20,11 @@ program fray
   real, PARAMETER :: iw = image_width - 1, ih = image_height - 1
 
   type(Camera) :: cam 
-  type(Ray) :: r, scattered
+  type(Ray) :: r
 
   integer :: i, j, s
   real :: u, v
-  real :: pixel_color(3), attenuation(3) ! colors
+  real :: pixel_color(3)! colors
   
   class(Hittable), ALLOCATABLE :: my_world
   type(Sphere) :: spheres(4)
@@ -32,9 +32,9 @@ program fray
   
   mat_ground = Lambertian(color(0.8, 0.8, 0.0))
   ! mat_center = Dielectric(1.5)
-  mat_left = Dielectric(1.5)
-  mat_center = Lambertian(color(0.1, 0.2, 0.5))
-  !" mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
+  ! mat_left = Dielectric(1.5)
+  mat_center = Lambertian(color(0.7, 0.3, 0.3))
+  mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
   mat_right = Metal(color(0.8, 0.6, 0.2), 1.0)
 
 
@@ -73,8 +73,9 @@ contains
     class(Ray), INTENT(IN) :: r
     class(Hittable), INTENT(IN) :: world
     type(HitRecord) :: rec
+    type(Ray) :: scattered
     integer, INTENT(IN) :: depth
-    real :: unit_direction(3), res(3), t
+    real :: unit_direction(3), res(3), attenuation(3), t
  
     if (depth <= 0) then
       res = color(0., 0., 0.)
