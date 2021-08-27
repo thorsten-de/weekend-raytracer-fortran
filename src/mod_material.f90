@@ -75,11 +75,11 @@ contains
     end if
 
     unit_direction = unit_vector(r_in%direction)
-    cos_theta = min(unit_direction .dot. rec%normal, 1.0)
+    cos_theta = min((-unit_direction) .dot. rec%normal, 1.0)
     sin_theta = sqrt(1.0 - cos_theta * cos_theta)
     cannot_refract = refraction_ratio * sin_theta > 1.0
 
-    if (cannot_refract) then
+    if (cannot_refract .or. reflectance(cos_theta, refraction_ratio) > random_uniform()) then
       direction = reflect(unit_direction, rec%normal)
     else
       direction = refract(unit_direction, rec%normal, refraction_ratio)
@@ -89,4 +89,14 @@ contains
     scattered = Ray(rec%p, direction)
     dielectric_scatter = .true.
   end function dielectric_scatter
+
+  real function reflectance(cosine, ref_idx)
+    real, INTENT(IN) :: cosine, ref_idx
+    real :: r0
+
+    r0 = (1-ref_idx) / (1+ref_idx)
+    r0 = r0*r0
+
+    reflectance = r0 + (1-r0)*((1-cosine) ** 5) 
+  end function reflectance
 end module mod_material

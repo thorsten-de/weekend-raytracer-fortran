@@ -12,7 +12,7 @@ program fray
 
   ! Image parameters
   real, PARAMETER :: aspect_ratio = 16.0 / 9.0;
-  integer, PARAMETER :: image_width   = 640, &
+  integer, PARAMETER :: image_width   = 400, &
                         image_height  = int(image_width / aspect_ratio), &
                         samples_per_pixel = 100, &
                         max_depth = 50
@@ -27,7 +27,7 @@ program fray
   real :: pixel_color(3)! colors
   
   class(Hittable), ALLOCATABLE :: my_world
-  type(Sphere) :: spheres(4)
+  type(Sphere) :: spheres(5)
   class(Material), ALLOCATABLE :: mat_ground, mat_center, mat_left, mat_right
   integer :: indices(2), is, ie
   real :: image(3, image_width, image_height)[*]
@@ -36,11 +36,11 @@ program fray
   image = 0.
   
   mat_ground = Lambertian(color(0.8, 0.8, 0.0))
-  mat_center = Dielectric(1.5)
-  ! mat_left = Dielectric(1.5)
-  ! mat_right = Lambertian(color(0.7, 0.3, 0.3))
-  mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
-  mat_right = Metal(color(0.8, 0.6, 0.2), 1.0)
+  ! mat_center = Dielectric(1.5)
+  mat_left = Dielectric(1.5)
+  mat_center = Lambertian(color(0.1, 0.2, 0.5))
+  ! mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
+  mat_right = Metal(color(0.8, 0.6, 0.2), 0.0)
 
 
 
@@ -48,6 +48,7 @@ program fray
   spheres(2) = Sphere([ 0.0, 0.0, -1.0], 0.5, mat_center)
   spheres(3) = Sphere([-1.0, 0.0, -1.0], 0.5, mat_left)
   spheres(4) = Sphere([ 1.0, 0.0, -1.0], 0.5, mat_right)
+  spheres(5) = Sphere([-1.0, 0.0, -1.0], -0.4, mat_left)
 
 !  spheres(2)  = spheres(1)
   my_world = HittableList(spheres)  
