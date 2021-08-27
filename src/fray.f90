@@ -12,7 +12,7 @@ program fray
 
   ! Image parameters
   real, PARAMETER :: aspect_ratio = 16.0 / 9.0;
-  integer, PARAMETER :: image_width   = 400, &
+  integer, PARAMETER :: image_width   = 640, &
                         image_height  = int(image_width / aspect_ratio), &
                         samples_per_pixel = 100, &
                         max_depth = 50
@@ -30,11 +30,15 @@ program fray
   type(Sphere) :: spheres(4)
   class(Material), ALLOCATABLE :: mat_ground, mat_center, mat_left, mat_right
   integer :: indices(2), is, ie
+  real :: image(3, image_width, image_height)[*]
+  integer, PARAMETER :: collecting_image = 1
+
+  image = 0.
   
   mat_ground = Lambertian(color(0.8, 0.8, 0.0))
-  ! mat_center = Dielectric(1.5)
+  mat_center = Dielectric(1.5)
   ! mat_left = Dielectric(1.5)
-  mat_center = Lambertian(color(0.7, 0.3, 0.3))
+  ! mat_right = Lambertian(color(0.7, 0.3, 0.3))
   mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
   mat_right = Metal(color(0.8, 0.6, 0.2), 1.0)
 
@@ -46,21 +50,16 @@ program fray
   spheres(4) = Sphere([ 1.0, 0.0, -1.0], 0.5, mat_right)
 
 !  spheres(2)  = spheres(1)
-  my_world = HittableList(spheres)
-  
+  my_world = HittableList(spheres)  
   cam = Camera()
 
+  ! get the slicing indices
   indices = tile_image(image_width);
   is = indices(1)
   ie = indices(2)
 
 
-  if (this_image() == 1) then
-    write (stdout, '(a)') "P3"
-    write (stdout, '(2(i4, 1x))') image_width, image_height
-    write (stdout , '(i3)') 255
-  end if
-  
+  ! calculate the pixels inside of this slice, and put them on the collecting image
   do j = image_height - 1, 0, - 1
     write(stderr, *) this_image(), 'of', num_images(), is, ':', ie,   '  ... Scanlines remaining: ', j
     do i=is, ie
@@ -71,10 +70,25 @@ program fray
         r = cam%get_ray(u, v)
         pixel_color = pixel_color + ray_color(r, my_world, max_depth)
       end do
-     write (stdout, '(3(i3, 1x))') color_out(pixel_color, samples_per_pixel)
+      image(:, i+1, j+1)[collecting_image] = pixel_color
     end do
   end do
 
+  ! wait for all images to be done with their slices
+  sync all
+
+  ! write the collected image to disk
+  if (this_image() == collecting_image) then
+    write (stdout, '(a)') "P3"
+    write (stdout, '(2(i4, 1x))') image_width, image_height
+    write (stdout , '(i3)') 255
+
+    do j= image_height , 1, -1
+      do i=1, image_width
+        write (stdout, '(3(i3, 1x))') color_out(image(:, i, j), samples_per_pixel)
+      end do
+    end do
+  end if
 
 contains
   recursive function ray_color(r, world, depth) result(res)
