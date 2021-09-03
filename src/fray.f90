@@ -27,32 +27,15 @@ program fray
   real :: pixel_color(3)! colors
   
   class(Hittable), ALLOCATABLE :: my_world
-  type(Sphere) :: spheres(5)
-  class(Material), ALLOCATABLE :: mat_ground, mat_center, mat_left, mat_right
   integer :: indices(2), is, ie
   real :: image(3, image_width, image_height)[*]
   integer, PARAMETER :: collecting_image = 1
 
   image = 0.
-  
-  mat_ground = Lambertian(color(0.8, 0.8, 0.0))
-  ! mat_center = Dielectric(1.5)
-  mat_left = Dielectric(1.5)
-  mat_center = Lambertian(color(0.1, 0.2, 0.5))
-  ! mat_left = Metal(color(0.8, 0.8, 0.8), 0.3)
-  mat_right = Metal(color(0.8, 0.6, 0.2), 0.0)
-
-
-
-  spheres(1) = Sphere([ 0.0, -100.5, -1.], 100., mat_ground)
-  spheres(2) = Sphere([ 0.0, 0.0, -1.0], 0.5, mat_center)
-  spheres(3) = Sphere([-1.0, 0.0, -1.0], 0.5, mat_left)
-  spheres(4) = Sphere([ 1.0, 0.0, -1.0], 0.5, mat_right)
-  spheres(5) = Sphere([-1.0, 0.0, -1.0], -0.4, mat_left)
-
-!  spheres(2)  = spheres(1)
-  my_world = HittableList(spheres)  
-  cam = Camera()
+  my_world = scene_1()  
+  ! default cam = Camera([0., 0., 0.], [0., 0., -1.], [0., 1., 0.],90.0, default_aspect_ratio)
+ 
+  cam = Camera([-2., 2., 1.], [0., 0., -1.], [0., 1., 0.], 20.0, default_aspect_ratio)
 
   ! get the slicing indices
   indices = tile_image(image_width);
@@ -130,6 +113,39 @@ contains
     tile_image(1) = tile_image(2) - tile_width + 1
   end function tile_image
 
+  function scene_1() result(scene)
+    class(Hittable), ALLOCATABLE :: scene
+    type(Sphere), ALLOCATABLE :: spheres(:)
+    class(Material), ALLOCATABLE :: mat_ground, mat_center, mat_left, mat_right
+
+    mat_ground = Lambertian(color(0.8, 0.8, 0.0))
+    mat_left = Dielectric(1.5)
+    mat_center = Lambertian(color(0.1, 0.2, 0.5))
+    mat_right = Metal(color(0.8, 0.6, 0.2), 0.0)
+
+    spheres = [Sphere([ 0.0, -100.5, -1.], 100., mat_ground), &
+               Sphere([ 0.0, 0.0, -1.0], 0.5, mat_center), &
+               Sphere([-1.0, 0.0, -1.0], 0.5, mat_left), &
+               Sphere([ 1.0, 0.0, -1.0], 0.5, mat_right), &
+               Sphere([-1.0, 0.0, -1.0], -0.45, mat_left)]
+    
+    scene = HittableList(spheres)  
+  end function scene_1
+
+  function scene_2() result(scene)
+    type(Sphere), ALLOCATABLE ::  spheres(:)
+    class(Material), ALLOCATABLE :: mat_left, mat_right
+    type(HittableList), ALLOCATABLE :: scene
+    real, PARAMETER :: radius = cos(atan(1.)) ! atan(.1) = PI/4
+
+    mat_left = Lambertian(color(0., 0., 1.))
+    mat_right =Lambertian(color(1., 0., 0.))
+
+    spheres = [Sphere([-radius, 0., -1.], radius, mat_left), &
+               Sphere([ radius, 0., -1.], radius, mat_right)]
+
+    scene = HittableList(spheres)
+  end function scene_2
 
 
 end program fray
