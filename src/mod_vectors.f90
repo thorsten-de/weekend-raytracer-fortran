@@ -114,6 +114,15 @@ module mod_vectors
     end if
   end function random_in_hemisphere
 
+  function random_in_unit_disc() result(res)
+    real :: res(3)
+
+    do 
+      res = [uniform_distribution(-1., 1.), uniform_distribution(-1., 1.), 0.]
+      if (length_squared(res) < 1) return
+    end do
+  end function random_in_unit_disc
+
   pure function near_zero(v) result(res)
     real, INTENT(IN) :: v(3)
     real, PARAMETER :: s = 1e-8

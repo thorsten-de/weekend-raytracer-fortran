@@ -12,7 +12,7 @@ program fray
 
   ! Image parameters
   real, PARAMETER :: aspect_ratio = 16.0 / 9.0;
-  integer, PARAMETER :: image_width   = 400, &
+  integer, PARAMETER :: image_width   = 800, &
                         image_height  = int(image_width / aspect_ratio), &
                         samples_per_pixel = 100, &
                         max_depth = 50
@@ -30,12 +30,19 @@ program fray
   integer :: indices(2), is, ie
   real :: image(3, image_width, image_height)[*]
   integer, PARAMETER :: collecting_image = 1
-
+  real :: lookfrom(3) = [3.,3.,2.], &
+          lookat(3) = [0.,0.,-1.], &
+          vup(3) = [0., 1., 0.], &
+          aperture = 0.6, &
+          dist_to_focus 
+  dist_to_focus = length(lookfrom-lookat)
   image = 0.
+  
   my_world = scene_1()  
   ! default cam = Camera([0., 0., 0.], [0., 0., -1.], [0., 1., 0.],90.0, default_aspect_ratio)
  
-  cam = Camera([-2., 2., 1.], [0., 0., -1.], [0., 1., 0.], 20.0, default_aspect_ratio)
+ !  cam = Camera([-2., 2., 1.], [0., 0., -1.], [0., 1., 0.], 20.0, default_aspect_ratio, aperture, dist_to_focus )
+  cam = Camera(lookfrom, lookat, vup, 20.0, default_aspect_ratio, aperture, dist_to_focus )
 
   ! get the slicing indices
   indices = tile_image(image_width);
