@@ -18,7 +18,7 @@ module mod_shapes
   end type Sphere
   
   type, extends(Hittable) :: HittableList
-    type(Sphere), ALLOCATABLE :: hit_list(:)
+    class(Hittable), ALLOCATABLE :: hit_list(:)
   contains
     procedure, public, pass(self) :: hit => hit_hittable_list
   end type HittableList
@@ -39,7 +39,7 @@ contains
     class(Ray), INTENT(IN) :: r
     class(HittableList), INTENT(IN) ::self
     type(HitRecord), INTENT(OUT) :: rec
-    type(Sphere), ALLOCATABLE :: obj
+    class(Hittable), ALLOCATABLE :: obj
     real, INTENT(IN) :: t_min, t_max
 
 
@@ -53,7 +53,7 @@ contains
 
     do i=1, size(self%hit_list)
       obj = self%hit_list(i)
-      if (hit_sphere(obj, r, t_min, closest, tmp_rec)) then
+      if (obj%hit(r, t_min, closest, tmp_rec)) then
         hit_anything = .true.
         closest = tmp_rec%t
         rec = tmp_rec
